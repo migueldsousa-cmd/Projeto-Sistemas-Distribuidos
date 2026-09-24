@@ -1,0 +1,126 @@
+# DOCUMENTO QUE ACOMPANHA A 2ª ENTREGA DO PROJETO DE SD
+
+1) Quais dos seguintes requisitos foram corretamente resolvidos?
+Abaixo de cada requisito, respondam: "Sim" ou "Não" ou "Sim mas com erros: [enumerar sucintamente os erros]"
+
+- Estender o sistema para permitir nós replicados
+"Sim"
+- Difusão baseada em blocos (e não transações individuais)
+"Sim"
+- Variantes não-bloqueantes dos comandos
+"Sim"
+- Funcionalidade de atrasar, no nó, a execução de cada pedido
+"Sim"
+- Suporte ao lançamento de novos nós a qualquer ponto no tempo
+"Sim mas com erros: Estado do nó não foi atualizado para a versão mais recente"
+- Tolerância a falhas silenciosas dos nós
+"Sim"/"Sim mas com erros: O grupo não conseguiu testar o requisito."
+
+2) Descrevam sucintamente as principais alterações que o grupo aplicou a cada componente indicada abaixo (máx. 800 palavras)
+Idealmente, componham uma lista de itens (cada um iniciado por um hífen, tal como a listagem dos requisitos apresentada acima).
+Refiram ainda se houve alterações aos argumentos de linha de comando dos executáveis, quais foram e qual a sua justificação.
+
+Aos .proto:
+
+1.node-sequencer.proto: 
+    -Criação da entidade de um Block (atributos: Id, sequencia de transactions), 
+assim como a subtituição das funções de Request e Response de transactions, por Request e Response de Blocks.
+Service também adicionado.
+    -Criação da função SyncRequest e respetivo Service que retorna os Blocks com transações já executadas.
+
+2.common.proto:
+    -adição dos atributos clientId e sequenceNumber a todas as funções
+
+
+Ao programa do Cliente:
+
+-Criação de um stub adicional para separar os comandos Blocking e Asynchronous
+
+-Separação dos métodos "Create, Delete and Transfer" entre Blocking e Asynchronous
+
+-Criação das classes auxiliares observers "AsyncObserver.java" e "BalanceAsyncObserver.java" para os métodos Asynchronous
+
+-Adição de metadados gRPC, para a possibilidade de adicionar delay a um pedido.
+
+-Adição do clientId, uma String que corresponde ao "Universally unique identifier (UUID)" da instância do cliente.
+
+-Alteração dos métodos "Create, Delete, balance e Transfer" para incluir a possibilidade de pedidos Asynchronous
+
+-Alteração dos métodos "Create, Delete e Transfer" para possibilitar que o pedido seja realizado por outro nó,
+caso o atual devolva o erro StatusRuntimeException Unavailable
+
+
+Ao programa do Nó:
+
+-Adição de sincronização após inicio do Nó.
+
+-Adicão de shutdown no NodeMain
+
+-Adição de uma Lista de Blocks
+
+-Mantém a Lista de transactions para manter o histórico de todas transações realizadas a partir dos Blocks.
+
+-Adição de uma Lista auxiliar (sequenceNumberPerClient) para evitar que transações pedidas por outros nós sejam repetidas.
+
+-Adição de uma Polling Thread que está constantemente (de 1s em 1s) a pedir pelos novos Blocks criados pelo Sequencer.
+Usa o atributo blockId, criado no ficheiro common.proto, para este fim.
+
+-Adição da possibilidade de receber Delay por pedido realizado pelo cliente.
+Para isso usa o clientId enviado a partir de metadados gRPC pelo Cliente.
+Adicão de uma classe Interceptor auxiliar para captar tais metadados.
+
+-Adição da implementação do Delay
+
+-Alteração dos métodos que executam as transações para corresponderem às alterações feitas nos ficheiros .proto
+Assim como apenas executam tais transações após o Nó as receber num Block.
+
+
+
+Ao programa do Sequenciador:
+
+-Alteração dos argumentos para incluir a possibilidade de especificar os atributos N (tamanho de um Block) e T (Tempo limite da criação de um Block).
+
+-Adição do shutdown do SequencerMain
+
+-Substituição da lista de transactions por uma lista de Blocks
+-Adição de um Lista de, transactions por incluir, para o Block a ser criado
+
+-Inclusão de um Timer para monitorizar o tempo limite da criação de um Block. E respectiva função.
+
+-Adição da função SyncBlocks para atualizar o estado de um Nó que peça SyncRequest.
+
+
+
+3) Na vossa solução, as transações recebidas pelo sequenciador levam algum identificador?
+Se sim, expliquem brevemente o formato e como é gerado o identificador (máx. 100 palavras)
+    Sim: 
+- "clientId" que contém um "Universally unique identifier (UUID)",
+ convertido para String, gerado a partir da função "UUID.randomUUID().toString()"
+
+- "sequenceNumber" (Formato long) , gerado pelo cliente a partir do commandCounter
+
+
+4) Como foi frisado na primeira aula teórica, não é aceitável o uso de GenAI/Code Copilots para gerar código usado diretamente no projeto.
+Tendo isto em conta, respondam brevemente às seguintes 3 perguntas:
+
+i) Os membros do grupo conseguem explicar o código submetido se tal for perguntado na discussão do projeto (feita sem recurso a AI)?
+    Sim, embora com as subsequentes alterações feitas no código ao longo das entregas
+ e a realização ter sido feita por 3 pessoas, possa haver confusão inicial.
+
+ii) Os membros do grupo conseguem defender todas as decisões de desenho e implementação se tal for perguntado na discussão do projeto (feita sem recurso a AI)?
+Sim
+
+iii) Usaram alguma(s) ferramenta(s) de AI? Se sim, para que uso?
+Sim, Google Gemini e ChatGPT
+
+    1. Deteção de erros/compilação. Que gerado a partir do Maven, 
+um erro poderia ter um output muito longo e demorar muito a corrigir.
+    (Exemplo: "SomethingResponse" -> faltar um 's' em Response 
+que passou despercebido durante a interpretação do erro -> ChatGPT detetou em segundos)
+
+    2. Caso o design inicial, e subsequentes tentativas de resolução, de implementação 
+de algum "requisito"/"feature para requisito" não funcionassem corretamente, recorreu-se
+a AI para arranjar ideias para resolver o problema.
+    (Exemplo: Para o atributo "clientId", o grupo tentou o uso de Integer no client ou no Node (ou ambos), 
+após não estar a funcionar corretamente, pediu-se opinião de ambos as AI (ambos para ter mais que 1 opinião),
+acabando por se escolher a mais simples de implementar)

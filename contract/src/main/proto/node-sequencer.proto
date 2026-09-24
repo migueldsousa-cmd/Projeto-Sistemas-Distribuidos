@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package pt.tecnico.blockchainist.contract;
+
+import "common.proto";
+
+// The following option causes top-level messages, enums, and services to be
+// defined at the package level, rather than inside an outer class named after
+// the .proto file.
+option java_multiple_files = true;
+
+message Block {
+  int32 block_id = 1;
+  repeated Transaction transactions = 2;
+  Signature signature = 3;
+}
+
+message BroadcastRequest {
+  Transaction transaction = 1;
+}
+
+message BroadcastResponse {
+  int32 sequence_number = 1;
+}
+
+message DeliverBlockRequest {
+  int32 block_id = 1;
+}
+
+message DeliverBlockResponse {
+  Block block = 1;
+}
+
+message SyncRequest {
+  // Empty
+}
+
+message DeliverTransactionRequest {
+  int32 sequence_number = 1;
+}
+
+message DeliverTransactionResponse {
+  Transaction transactions = 1;
+}
+
+service SequencerService {
+  rpc Broadcast(BroadcastRequest) returns (BroadcastResponse);
+  rpc DeliverTransaction(DeliverTransactionRequest) returns (DeliverTransactionResponse);
+  rpc DeliverBlock(DeliverBlockRequest) returns (DeliverBlockResponse);
+  rpc SyncBlocks(SyncRequest) returns (stream Block);
+}

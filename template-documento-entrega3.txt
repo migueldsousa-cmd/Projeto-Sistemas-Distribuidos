@@ -1,0 +1,82 @@
+
+# DOCUMENTO QUE ACOMPANHA A 3ª ENTREGA DO PROJETO DE SD
+
+1) Quais dos seguintes requisitos foram corretamente resolvidos?
+Abaixo de cada requisito, respondam: "Sim" ou "Não" ou "Sim mas com erros: [enumerar sucintamente os erros]"
+
+- Suporta a execução/resposta a pedidos de transferência antes da transação correspondente ser entregue pelo sequenciador [C.1].
+"Sim"
+- As transações são assinadas digitalmente pelo utilizador que as invocou e as respetivas assinaturas são verificadas antes de cada transação ser executada nas réplicas [C.2].
+"Sim"
+- A blockchain gerada pelo sequenciador é assinada digitalmente e as assinaturas correspondentes são verificadas pelos nós que recebem cada bloco [C.2].
+"Sim"
+
+2) Descrevam sucintamente as principais alterações que o grupo aplicou a cada componente indicada abaixo (máx. 800 palavras)
+Idealmente, componham uma lista de itens (cada um iniciado por um hífen, tal como a listagem dos requisitos apresentada acima).
+Refiram ainda se houve alterações aos argumentos de linha de comando dos executáveis, quais foram e qual a sua justificação.
+
+Aos .proto:
+1. common.proto:
+    -Criação de uma Signature (atributos: signerIdentifier, signatureValue).
+
+    -Adição de Signature aos métodos CreateWalletRequest, DeleteWalletRequest, TransferRequest.
+
+2. node-sequencer.proto:
+    -Adicão de Signature ao Block.
+
+Ao programa do Cliente:
+-Adição das chaves a ser usadas pelo cliente.
+
+-Adição das funções que assinam as transações, e respectivos métodos auxiliares.
+
+Ao programa do Nó:
+-implementação da funcionalidade de reazlizar uma transferência antes de enviar para o sequenciador.
+
+-Criação de um Set que mantém histórico de que transferências já chegaram do sequenciador para evitar que seja enviado 2 vezes ao cliente.
+
+-Adição das chaves a ser usadas pelo Node.
+
+-Criação de métodos auxiliares para verificação de assinaturas.
+
+-Alteração das funções que efetuam as transações para verificar a assinatura do cliente.
+
+-Criação de um método que verifica as assinaturas de um Block enviado pelo Sequencer.
+
+Ao programa do Sequenciador:
+-Adição de um sequencerId para a instância do sequenciador.
+
+-Adição das chaves a ser usadas pelo Sequencer.
+
+-Adição das funções que assinam os Blocks, e respectivos métodos auxiliares.
+
+
+
+3) Na vossa solução para o requisito da C.1, em quais condições uma transferência **NÃO** é executada pelo nó (que recebeu o pedido respetivo) antes da transação ser enviada ao sequenciador? (máx. 100 palavras)
+A transferência é sempre executada pelo nó antes de ser enviada ao sequenciador.
+
+
+4) Como foi frisado na primeira aula teórica, não é aceitável o uso de GenAI/Code Copilots para gerar código usado diretamente no projeto.
+Tendo isto em conta, respondam brevemente às seguintes 3 perguntas:
+
+i) Os membros do grupo conseguem explicar o código submetido se tal for perguntado na discussão do projeto (feita sem recurso a AI)?
+    Sim, embora com as subsequentes alterações feitas no código ao longo das entregas
+ e a realização ter sido feita por 3 pessoas, possa haver confusão inicial.
+
+ii) Os membros do grupo conseguem defender todas as decisões de desenho e implementação se tal for perguntado na discussão do projeto (feita sem recurso a AI)?
+Sim
+
+iii) Usaram alguma(s) ferramenta(s) de AI? Se sim, para que uso?
+(Copiado da entrega 2. Mesmo uso)
+Sim, Google Gemini e ChatGPT
+
+    1. Deteção de erros/compilação. Que gerado a partir do Maven, 
+um erro poderia ter um output muito longo e demorar muito a corrigir.
+    (Exemplo: "SomethingResponse" -> faltar um 's' em Response 
+que passou despercebido durante a interpretação do erro -> ChatGPT detetou em segundos)
+
+    2. Caso o design inicial, e subsequentes tentativas de resolução, de implementação 
+de algum "requisito"/"feature para requisito" não funcionassem corretamente, recorreu-se
+a AI para arranjar ideias para resolver o problema.
+    (Exemplo: Para o atributo "clientId", o grupo tentou o uso de Integer no client ou no Node (ou ambos), 
+após não estar a funcionar corretamente, pediu-se opinião de ambos as AI (ambos para ter mais que 1 opinião),
+acabando por se escolher a mais simples de implementar)
